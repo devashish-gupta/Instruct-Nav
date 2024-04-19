@@ -8,3 +8,8 @@ We employ GPT-4 API to generate plausible language instructions based on the vis
 
 # Architecture
 ![Model architecture](/assets/architecture.png)
+
+Input modalities and encoders:
+- **RGB images**: We leverage the `CLIPVisionTower`, trained as a part of the [mtgv/MobileVLM_V2-1.7B](https://huggingface.co/mtgv/MobileVLM_V2-1.7B) model, as our vision encoder.
+- **Point clouds**: We employ the [PointNet](https://arxiv.org/abs/1612.00593) encoder.
+- **Language instruction**: We use the `MobileLLaMA-1.4B-Base` model as our language encoder, which trained as a part of `mtgv/MobileVLM_V2-1.7B`.
