@@ -1,0 +1,6 @@
+# Sample Command Guide
+#
+Spawn female_adult_police_03 2 10 0 90
+Spawn Jerry 10 10 0 0
+female_adult_police_03 GoTo 9 10 0 _
+Jerry GoTo 0 0 0 _
