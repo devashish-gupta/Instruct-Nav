@@ -1,0 +1,59 @@
+{
+    "CameraCapture": {
+        "version": 1,
+        "description": "Captures the frames of a camera by its name in the stage",
+        "language": "Python",
+        "metadata": {
+            "uiName": "Camera Capture"
+        },
+        "inputs": {
+            "exec_in": {
+                "type": "execution",
+                "description": "Execution in",
+                "default": 0,
+                "metadata": {
+                    "uiName": "Exec In"
+                }
+            },
+            "camera_name": {
+                "type": "string",
+                "description": "Name of the camera for which the frame should be captured",
+                "default": "",
+                "metadata": {
+                    "uiName": "Camera Name"
+                }
+            }
+        },
+        "outputs": {
+            "width": {
+                "type": "int",
+                "description": "Width of the captured image",
+                "metadata": {
+                    "uiName": "Width"
+                }
+            },
+            "height": {
+                "type": "int",
+                "description": "Height of the captured image",
+                "metadata": {
+                    "uiName": "Height"
+                }
+            },
+            "image_buffer": {
+                "type": "float[]",
+                "description": "A flattened version of the image",
+                "default": [],
+                "metadata": {
+                    "uiName": "Image Buffer"
+                }
+            },
+            "exec_out": {
+                "type": "execution",
+                "description": "Execution out",
+                "metadata": {
+                    "uiName": "Exec Out"
+                }
+            }
+        }
+    }
+}

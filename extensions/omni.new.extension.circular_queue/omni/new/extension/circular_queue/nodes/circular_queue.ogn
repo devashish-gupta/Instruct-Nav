@@ -1,0 +1,51 @@
+{
+    "CircularQueue": {
+        "version": 1,
+        "description": "This node implements a circular queue of a particular size",
+        "language": "Python",
+        "metadata": {
+            "uiName": "Circular Queue"
+        },
+        "inputs": {
+            "exec_in": {
+                "type": "execution",
+                "description": "Execution in",
+                "default": 0,
+                "metadata": {
+                    "uiName": "Exec In"
+                }
+            },
+            "data": {
+                "type": "float[]",
+                "description": "Any data that needs to be stored within the queue",
+                "metadata": {
+                    "uiName": "Data"
+                }
+            },
+            "size": {
+                "type": "int",
+                "description": "Size of the circular queue",
+                "default": 0,
+                "metadata": {
+                    "uiName": "Size"
+                }
+            }
+        },
+        "outputs": {
+            "exec_out": {
+                "type": "execution",
+                "description": "Execution out",
+                "metadata": {
+                    "uiName": "Exec Out"
+                }
+            },
+            "batch_data": {
+                "type": "float[]",
+                "description": "Batch of data from the past",
+                "metadata": {
+                    "uiName": "Batch Data"
+                }
+            }
+        }
+    }
+}
