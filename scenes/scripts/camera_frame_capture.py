@@ -11,7 +11,7 @@
 #    og: The omni.graph.core module
 
 from omni.isaac.sensor.scripts.camera import get_all_camera_objects
-import matplotlib.pyplot as plt
+import numpy as np
 
 
 def setup(db: og.Database):
@@ -21,16 +21,30 @@ def setup(db: og.Database):
 		if cam.name == 'jetbot_camera':
 			camera = cam
 			
+	# initializing the camera so that the rgb annotator is populated
+	camera.initialize()
+
+	# storing the camera for future use
 	db.internal_state.__dict__['camera'] = camera
 	
+	# declaring the observation queue
+	db.internal_state.__dict__['queue'] = []
 
 
 def cleanup(db: og.Database):
-	print('cleanup done')
+	pass
 
 
 def compute(db: og.Database):
-	camera = db.internal_state.camera
-	print(camera.get_rgb())
-	# print(camera.get_rgba()[:, :, :3])
+	# getting the latest camera frame
+	image = db.internal_state.camera.get_rgb()
+	width, height, _ = image.shape
+	image = image.flatten().astype(np.float32)/255.0
+
+	# returning the flattened image
+    db.outputs.image_flat = image
+	db.outputs.width = width
+	db.outputs.height = height
+	return True
+
 	
