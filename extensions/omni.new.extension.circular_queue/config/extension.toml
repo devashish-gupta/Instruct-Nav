@@ -1,0 +1,36 @@
+
+[package]
+# Semantic Versioning is used: https://semver.org/
+version = "0.1.0"
+
+# Lists people or organizations that are considered the "authors" of the package.
+authors = ['Devashish Gupta']
+
+# The title and description fields are primarly for displaying extension info in UI
+title = "Circular Queue Node"
+description="Omnigraph node implementation for a circular queue of a particular size"
+
+# Path (relative to the root) or content of readme markdown file for UI.
+readme  = "docs/README.md"
+
+# URL of the extension source repository.
+repository="https://gitlab-master.nvidia.com/omniverse/kit-extensions/example"
+
+# Categories for UI.
+category = "Other"
+
+# Keywords for the extension
+keywords = ["kit", "omnigraph"]
+
+# Watch the .ogn files for hot reloading (only works for Python files)
+[fswatcher.patterns]
+include = ["*.ogn", "*.py"]
+exclude = ["Ogn*Database.py"]
+
+[dependencies]
+"omni.kit.test" = {}
+"omni.graph" = {}
+
+# Main python module this extension provides, it will be publicly available as "import omni.new.extension.circular_queue".
+[[python.module]]
+name = "omni.new.extension.circular_queue"
