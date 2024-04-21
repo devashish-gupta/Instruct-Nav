@@ -121,6 +121,7 @@ class SocialNavDataset(Dataset):
             .float(),
             "past_frames": past_frames,
             "future_frames": future_frames,
+            "instructions": self.data["instructions"][idx]
         }
         current = sample["past_positions"][-1]  # current position
         rot = torch.Tensor(
