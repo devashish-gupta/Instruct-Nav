@@ -20,3 +20,8 @@ Input modalities and encoders:
 - **RGB images**: We leverage the `CLIPVisionTower`, trained as a part of the [mtgv/MobileVLM_V2-1.7B](https://huggingface.co/mtgv/MobileVLM_V2-1.7B) model, as our vision encoder.
 - **Point clouds**: We employ the [PointNet](https://arxiv.org/abs/1612.00593) encoder.
 - **Language instruction**: We use the `MobileLLaMA-1.4B-Base` model as our language encoder, which was trained as a part of `mtgv/MobileVLM_V2-1.7B`.
+
+# Evaluation Setup
+We leverage [Nvidia Isaac Sim](https://developer.nvidia.com/isaac-sim) for testing and evaluating Instruct-Nav's capabilities. We deploy our model on a CarterV1 robot with a PhysX Lidar and Isaac camera. Here's the high level workflow of the Action Graph implementing Instruct-Nav functionality
+
+![Action graph](/assets/action_graph.png)
