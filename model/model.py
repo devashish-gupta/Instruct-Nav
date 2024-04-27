@@ -49,9 +49,9 @@ class InstructNav(nn.Module):
         self.lstm = nn.LSTM(self.env_dim, self.cfg.lstm_hidden_dim, self.cfg.lstm_num_layers, batch_first=True)
 
         # compression
-        self.env_out_dim = self.cfg.env_out_dim
-        self.lang_out_dim = self.cfg.lang_out_dim
-        self.env_fc = nn.Linear(self.env_dim, self.env_out_dim)
+        self.env_out_dim = self.cfg.env_out_dim # 256
+        self.lang_out_dim = self.cfg.lang_out_dim # 256
+        self.env_fc = nn.Linear(self.cfg.lstm_hidden_dim, self.env_out_dim)
         self.lang_fc = nn.Linear(self.lang_dim, self.lang_out_dim)
 
         # compressed cross-modal processing
@@ -114,7 +114,7 @@ class InstructNav(nn.Module):
         # encoding instructions
         instruct_emb = []
         for ins in instruction:
-            instruct_emb.append(self.lang_fc(self.lang_encoder(ins)))
+            instruct_emb.append(self.lang_fc(self.lang_encoder(ins)[:, -1, :]))
         instruct_emb = torch.stack(instruct_emb, dim=0) # shape: (batch, self.lang_out_dim)
 
         # encoding vision and point clouds: building a representation of the environment
@@ -129,12 +129,13 @@ class InstructNav(nn.Module):
         # temporal processing: learning the dynamics of evolution of the environment
         batch_size = pc_emb.size(0)
         h, c = self.init_lstm(batch_size)
-        vision_pc_emb = torch.stack((vision_emb, pc_emb), dim=2) # shape: (batch, obs_dim, self.vision_dim + self.pc_dim)
+        vision_pc_emb = torch.concat((vision_emb.mean(dim=2), pc_emb), dim=2) # shape: (batch, obs_dim, self.vision_dim + self.pc_dim)
         env_emb, _ = self.lstm(vision_pc_emb, (h, c)) # shape: (batch, self.cfg.lstm_hidden_dim)
+        env_emb = env_emb[:, -1, :]
         env_emb = self.env_fc(env_emb) # compression, shape: (batch, self.env_out_dim)
 
         # cross-modal processing: learning relationships between language and environment evolution
-        emb = self.x_attention(query=instruct_emb.unsqueeze(1), 
+        emb = self.x_attention(query=instruct_emb, 
                             key=env_emb.unsqueeze(1), 
                             value=env_emb.unsqueeze(1)).squeeze(1) # unsqueezing for seq_len = 1
 
@@ -163,7 +164,7 @@ class InstructNav(nn.Module):
                 of the agent across the prediction horizon. shape, both: (pred_dim)
         '''
         # encoding instruction
-        instruct_emb = self.lang_fc(self.lang_encoder(instruction)) # compression, shape: (self.lang_out_dim, )
+        instruct_emb = self.lang_fc(self.lang_encoder(instruction)[:, -1, :]) # compression, shape: (self.lang_out_dim, ), picking the last_hidden_state
 
         # encoding vision and point clouds: building a representation of the environment
         vision_emb = self.vision_encoder(image) # shape: (obs_dim, self.vision_dim)
@@ -172,9 +173,10 @@ class InstructNav(nn.Module):
         # temporal processing: learning the dynamics of evolution of the environment
         batch_size = 1
         h, c = self.init_lstm(batch_size)
-        vision_pc_emb = torch.stack((vision_emb, pc_emb), dim=1) # shape: (batch, obs_dim, self.vision_dim + self.pc_dim)
+        vision_pc_emb = torch.concat((vision_emb.mean(dim=1), pc_emb), dim=1) # shape: (batch, obs_dim, self.vision_dim + self.pc_dim)
         env_emb, _ = self.lstm(vision_pc_emb.unsqueeze(0), (h, c)) # shape: (1, obs_dim, self.cfg.lstm_hidden_dim)
-        env_emb = self.env_fc(env_emb.squeeze(0)) # compression, shape: (obs_dim, self.env_out_dim)
+        env_emb = env_emb[:, -1, :] # last output state 
+        env_emb = self.env_fc(env_emb) # compression, shape: (1, self.env_out_dim)
 
         # cross-modal processing: learning relationships between language and environment evolution
         emb = self.x_attention(query=instruct_emb.unsqueeze(0), 
@@ -252,5 +254,4 @@ class InstructNav(nn.Module):
     #     ang_vel = self.ang_mlp(emb)
 
     #     return lin_vel, ang_vel
-
 

@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class CrossAttention(nn.Module):
     def __init__(self, query_dim, key_dim, value_dim, num_heads):
-        super(CrossAttention, self).__init__()
+        super().__init__()
         self.num_heads = num_heads
         
         # linear transformations for query, key, and value
@@ -39,6 +39,8 @@ class CrossAttention(nn.Module):
         
         # concatenate attention outputs from all heads and linearly transform
         attn_output = attn_output.transpose(1, 2).contiguous().view(query.size(0), -1, value.size(-1))
+
+        attn_output = attn_output.view(query.size(0), -1)
         attn_output = self.out_linear(attn_output)
         
         return attn_output

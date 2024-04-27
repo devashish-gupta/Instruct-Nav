@@ -16,7 +16,7 @@ class MobileVLMVisionEncoder(nn.Module):
         _, model, _, _ = load_pretrained_model('mtgv/MobileVLM_V2-1.7B',
                                               load_8bit=False,
                                               load_4bit=False,
-                                              device_map='auto',
+                                              device_map='cpu',
                                               device='cpu')
 
         self.vision_tower = model.model.vision_tower
@@ -63,7 +63,7 @@ class MobileVLMLanguageEncoder(nn.Module):
         self.tokenizer, self.llama, _, _ = load_pretrained_model('mtgv/MobileVLM_V2-1.7B',
                                               load_8bit=False,
                                               load_4bit=False,
-                                              device_map='auto',
+                                              device_map='cpu',
                                               device='cpu')
 
         # override model config for outputting hidden state

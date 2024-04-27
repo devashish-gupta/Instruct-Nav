@@ -39,7 +39,7 @@ class SocialNavDataset(Dataset):
         train: bool = True,
         seed: int = 42,
         boost: int = 1,
-        resize: Union[list, tuple] = (224, 224),
+        resize: Union[list, tuple] = (340, 340),
     ):
         """Dataloader for social navigation task
 
@@ -52,6 +52,7 @@ class SocialNavDataset(Dataset):
         # read and store directories
         with Path(root).open("rb") as f:
             self.data = pickle.load(f)
+            print(type(self.data))
 
         self.batch_read_number = 0
 
@@ -59,6 +60,7 @@ class SocialNavDataset(Dataset):
         return len(self.data["past_positions"])
 
     def __getitem__(self, idx):
+        
         """Return a sample"""
         if self.train:
             transform = transforms.Compose(
@@ -75,7 +77,7 @@ class SocialNavDataset(Dataset):
         else:
             transform = transforms.Compose(
                 [
-                    # Crop(self.crop),
+                    # Crop(self.crop),       
                     transforms.Resize(self.resize, antialias=True),
                     transforms.ToTensor(),
                     transforms.Normalize(
@@ -85,43 +87,77 @@ class SocialNavDataset(Dataset):
             )
         # Read image data and add to the list
         past_frames = []
-        for img_address in self.data["past_frames"][idx]:
-            # read all images and append them to a list
-            img = imread(img_address.as_posix())
-            # print(f"{img.shape = }")
-            img = transform(img)
-            # img = img.refine_names(..., 'channels', 'height', 'width')
-            past_frames.append(img)
+        for past_frames_list in self.data["past_frames"][idx]:
+            for img_address in past_frames_list:
+                # read all images and append them to a list
+                posix = img_address.as_posix()
+                posix = str(posix)
+                #posix = "../" + posix
+                #print("POSIX: ", posix)
+                img = imread(posix)
+                # print(f"{img.shape = }")
+                img = transform(img)
+                # img = img.refine_names(..., 'channels', 'height', 'width')
+                past_frames.append(img)
 
         future_frames = []
-        for img_address in self.data["future_frames"][idx]:
-            # read all images and append them to a list
-            img = imread(str(img_address))
-            img = transform(img)
-            # img = img.refine_names(..., 'channels', 'height', 'width')
-            future_frames.append(img)
+        for future_frames_list in self.data["future_frames"][idx]:
+            for img_address in future_frames_list:
+                # read all images and append them to a list
+                posix = str(img_address.as_posix())
+                img = imread(posix)
+                img = transform(img)
+                # img = img.refine_names(..., 'channels', 'height', 'width')
+                future_frames.append(img)
+
+        # PC
+        past_pc = [item for sublist in self.data["past_pc"] for item in sublist]
+        string_paths = [str(path) for path in past_pc]
+        for path in string_paths:
+            ext = path.split(".")[-1].upper()
+            if(ext != "PLY"):
+                print("PATH: ", path, "EXT: ", ext)
+        pc_batch = [PyntCloud.from_file(str(path)).points.values for path in string_paths]
+        
+        min_count = np.min([pc.shape[0] for pc in pc_batch])
+        pcs = [pc[np.random.choice(pc.shape[0], min_count, replace=False),:] for pc in pc_batch] # downsampling every pc to minimum point count
+        pc_batch = np.stack(pcs) # model expects pc batch shape: (batch, 3, num_points)
+        pc_batch = pc_batch.transpose(0,2,1)
+
+        # Combine sublists that all belong to the same sample
+        past_positions = [item for sublist in self.data["past_positions"][idx] for item in sublist]
+        future_positions = [item for sublist in self.data["future_positions"][idx] for item in sublist]
+        past_yaw = [item for sublist in self.data["past_yaw"][idx] for item in sublist]
+        future_yaw = [item for sublist in self.data["future_yaw"][idx] for item in sublist]
+        past_vw = [item for sublist in self.data["past_vw"][idx] for item in sublist]
+        future_vw = [item for sublist in self.data["future_vw"][idx] for item in sublist]
+        past_vw = [item for sublist in self.data["past_vw"][idx] for item in sublist]
+        future_vw = [item for sublist in self.data["future_vw"][idx] for item in sublist]
+        instructs = [item for sublist in self.data["instructions"][idx] for item in sublist]
+        
 
         sample = {
             "past_positions": torch.Tensor(
-                np.array(self.data["past_positions"][idx])
+                np.array(past_positions)
             ).float(),
             "future_positions": torch.Tensor(
-                np.array(self.data["future_positions"][idx])
+                np.array(future_positions)
             ).float(),
-            "past_yaw": torch.Tensor(np.array(self.data["past_yaw"][idx]))
+            "past_yaw": torch.Tensor(np.array(past_yaw))
             .float()
             .view(-1),
-            "future_yaw": torch.Tensor(np.array(self.data["future_yaw"][idx]))
+            "future_yaw": torch.Tensor(np.array(future_yaw))
             .float()
             .view(-1),
-            "past_vw": torch.Tensor(np.array(self.data["past_vw"][idx]))
+            "past_vw": torch.Tensor(np.array(past_vw))
             .float()
             .view(-1),
-            "future_vw": torch.Tensor(np.array(self.data["future_vw"][idx]))
+            "future_vw": torch.Tensor(np.array(future_vw))
             .float(),
-            "past_frames": past_frames,
+            "past_frames": torch.stack(past_frames),
             "future_frames": future_frames,
-            "instructions": self.data["instructions"][idx]
+            "past_pc": torch.Tensor(pc_batch),
+            "instructions": instructs
         }
         current = sample["past_positions"][-1]  # current position
         rot = torch.Tensor(
