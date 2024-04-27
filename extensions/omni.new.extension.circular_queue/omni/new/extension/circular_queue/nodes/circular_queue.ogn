@@ -45,6 +45,14 @@
                 "metadata": {
                     "uiName": "Batch Data"
                 }
+            },
+            "buffer_lengths": {
+                "type": "int[]",
+                "description": "Length of each buffer in the queue",
+                "metadata": {
+                    "uiName": "Buffer Lengths"
+                },
+                "default": []
             }
         }
     }

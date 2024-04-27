@@ -25,13 +25,17 @@ class circular_queue:
             if db.inputs.size is None or db.inputs.size == 0:
                 db.log_error('Queue size cannot be zero.')
 
-            # filling up the queue
-            if len(db.internal_state.queue) < db.inputs.size:
-                db.internal_state.queue.append(db.inputs.data)
             else:
-                db.internal_state.queue.append(db.inputs.data)
-                db.internal_state.queue.pop(0)
-                db.outputs.batch_data = np.concatenate(db.internal_state.queue)
+                # filling up the queue
+                if len(db.internal_state.queue) < db.inputs.size:
+                    db.internal_state.queue.append(db.inputs.data)
+                else:
+                    db.internal_state.queue.append(db.inputs.data)
+                    db.internal_state.queue.pop(0)
+
+                    # outputs
+                    db.outputs.batch_data = np.concatenate(db.internal_state.queue)
+                    db.outputs.buffer_lengths = np.array([len(buffer) for buffer in db.internal_state.queue])
                 
         except Exception as error:
             db.log_error(str(error))
